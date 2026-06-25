@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Per Mille : Colour Combination Studio</title>
+<link rel="icon" href="permille.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0e0e0e;
+    --ink-muted: #5a5a5a;
+    --ink-faint: #999;
+    --paper: #f7f5f0;
+    --paper-warm: #ede9e0;
+    --paper-card: #ffffff;
+    --rule: rgba(0,0,0,0.1);
+    --rule-strong: rgba(0,0,0,0.2);
+    --accent: #1a1a1a;
+    --mono: 'DM Mono', monospace;
+    --serif: 'DM Serif Display', serif;
+    --sans: 'Inter', sans-serif;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── MASTHEAD ── */
+  .masthead {
+    border-bottom: 1px solid var(--rule-strong);
+    padding: 0 2.5rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    background: var(--paper);
+  }
+  .masthead-left {
+    display: flex;
+    align-items: baseline;
+    gap: 1.25rem;
+    padding: 1.25rem 0;
+    border-right: 1px solid var(--rule);
+    padding-right: 1.25rem;
+    flex-shrink: 0;
+  }
+  .wordmark {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .wordmark em {
+    font-style: italic;
+    color: var(--ink-muted);
+  }
+  .issue-tag {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    padding-top: 2px;
+  }
+  .masthead-tagline {
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 1.25rem 1rem;
+    flex: 1;
+  }
+  .masthead-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+  }
+  .btn-export {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    background: none;
+    border: 1px solid var(--rule-strong);
+    padding: 6px 14px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .btn-export:hover { color: var(--ink); border-color: var(--ink); }
+  .btn-export svg { width: 12px; height: 12px; }
+
+  /* ── STUDIO PANEL ── */
+  .studio {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: calc(100vh - 70px);
+  }
+
+  .sidebar {
+    border-right: 1px solid var(--rule-strong);
+    padding: 2rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: var(--paper);
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 70px);
+    overflow-y: auto;
+  }
+
+  .sidebar-section {
+    padding-bottom: 1.75rem;
+    margin-bottom: 1.75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .sidebar-section:last-child { border-bottom: none; margin-bottom: 0; }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 1rem;
+  }
+
+  /* Color swatches */
+  .color-list { display: flex; flex-direction: column; gap: 8px; }
+  .color-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .color-preview {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--rule-strong);
+    flex-shrink: 0;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .color-preview input[type=color] {
+    position: absolute;
+    inset: -4px;
+    width: calc(100% + 8px);
+    height: calc(100% + 8px);
+    opacity: 0;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+  }
+  .color-hex {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-muted);
+    flex: 1;
+    letter-spacing: 0.04em;
+  }
+  .color-remove {
+    background: none;
+    border: none;
+    color: var(--ink-faint);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 2px 4px;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .color-row:hover .color-remove { opacity: 1; }
+  .color-remove:hover { color: var(--ink); }
+  .btn-add-color {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    background: none;
+    border: 1px dashed var(--rule-strong);
+    padding: 7px 12px;
+    cursor: pointer;
+    margin-top: 8px;
+    width: 100%;
+    transition: all 0.15s;
+  }
+  .btn-add-color:hover { color: var(--ink); border-color: var(--ink); border-style: solid; }
+
+  /* Grid selector */
+  .grid-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .grid-opt {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    text-align: center;
+    padding: 8px 4px;
+    border: 1px solid var(--rule-strong);
+    background: none;
+    cursor: pointer;
+    color: var(--ink-muted);
+    transition: all 0.15s;
+  }
+  .grid-opt:hover { color: var(--ink); border-color: var(--ink); }
+  .grid-opt.active {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+
+  /* Stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .stat-cell {
+    background: var(--paper);
+    padding: 10px 12px;
+  }
+  .stat-cell-label {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 2px;
+  }
+  .stat-cell-val {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    color: var(--ink);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  .btn-generate {
+    width: 100%;
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-style: italic;
+    letter-spacing: 0.01em;
+    color: var(--paper);
+    background: var(--ink);
+    border: none;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 0.25rem;
+  }
+  .btn-generate:hover { background: #333; }
+
+  /* ── GALLERY ── */
+  .gallery-wrap {
+    padding: 2rem 2.5rem;
+    min-height: 400px;
+  }
+
+  .gallery-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .gallery-title {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    color: var(--ink-muted);
+    font-style: italic;
+  }
+  .gallery-count {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 1px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+  }
+
+  .combo-card {
+    background: var(--paper-card);
+    cursor: pointer;
+    transition: background 0.1s;
+    display: flex;
+    flex-direction: column;
+  }
+  .combo-card:hover { background: var(--paper-warm); }
+
+  .card-tile-wrap {
+    width: 100%;
+    aspect-ratio: 1;
+    display: grid;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .card-tile-cell { display: block; }
+
+  .card-swatch {
+    height: 52px;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .card-meta {
+    padding: 8px 10px 10px;
+  }
+  .card-hex {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .load-more-wrap {
+    text-align: center;
+    padding: 2.5rem 0 1rem;
+    display: none;
+  }
+  .btn-load-more {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    background: none;
+    border: 1px solid var(--rule-strong);
+    padding: 10px 32px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-load-more:hover { color: var(--ink); border-color: var(--ink); }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 5rem 2rem;
+    text-align: center;
+  }
+  .empty-state-glyph {
+    font-family: var(--serif);
+    font-size: 3rem;
+    color: var(--rule-strong);
+    font-style: italic;
+    line-height: 1;
+  }
+  .empty-state p {
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+    max-width: 260px;
+    line-height: 1.7;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(14,14,14,0.75);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--paper);
+    max-width: 560px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    border: 1px solid var(--rule-strong);
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .modal-header-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: var(--ink-muted);
+    line-height: 1;
+    padding: 2px 4px;
+  }
+  .modal-close:hover { color: var(--ink); }
+
+  .modal-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .modal-left {
+    padding: 1.5rem;
+    border-right: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .modal-pattern-wrap {
+    width: 100%;
+    aspect-ratio: 1;
+    display: grid;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+  }
+
+  .modal-left-label {
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 4px;
+  }
+
+  .modal-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .breakdown-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .breakdown-swatch {
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--rule);
+    flex-shrink: 0;
+  }
+  .breakdown-text {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--ink-muted);
+  }
+
+  .modal-right {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .modal-result-swatch {
+    width: 100%;
+    aspect-ratio: 1;
+    border: 1px solid var(--rule);
+  }
+
+  .modal-hex-display {
+    font-family: var(--mono);
+    font-size: 1.3rem;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+  .modal-hex-sub {
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-top: 2px;
+  }
+
+  /* Canvas tiling section */
+  .modal-canvas-section {
+    border-top: 1px solid var(--rule);
+    padding: 1.25rem 1.5rem;
+  }
+  .canvas-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  .canvas-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .zoom-readout {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--ink-muted);
+  }
+
+  #tile-canvas {
+    display: block;
+    width: 100%;
+    height: 200px;
+    border: 1px solid var(--rule);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  .zoom-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+  }
+  .zoom-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    flex-shrink: 0;
+  }
+  .zoom-row input[type=range] {
+    flex: 1;
+    height: 2px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--rule-strong);
+    outline: none;
+    cursor: pointer;
+  }
+  .zoom-row input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--ink);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .zoom-row input[type=range]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--ink);
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+  }
+
+  @media (max-width: 700px) {
+    .studio { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; }
+    .masthead { padding: 0 1.25rem; flex-wrap: wrap; }
+    .gallery-wrap { padding: 1.5rem 1.25rem; }
+    .modal-body { grid-template-columns: 1fr; }
+    .modal-left { border-right: none; border-bottom: 1px solid var(--rule); }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-left">
+    <div class="wordmark">Per<em> Mille</em></div>
+    <div class="issue-tag">pointillisme</div>
+  </div>
+  <div class="masthead-tagline">Optical colour mixing — every unique combination, every resultant hue</div>
+  <div class="masthead-right">
+    <button class="btn-export" id="btn-export">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M2 12v2h12v-2"/></svg>
+      Export CSV
+    </button>
+  </div>
+</header>
+
+<div class="studio">
+  <aside class="sidebar">
+
+    <div class="sidebar-section">
+      <div class="section-label">Colours</div>
+      <div class="color-list" id="color-list"></div>
+      <button class="btn-add-color" id="btn-add-color">+ Add colour</button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-label">Tile grid</div>
+      <div class="grid-selector" id="grid-selector">
+        <button class="grid-opt active" data-g="2">2 × 2</button>
+        <button class="grid-opt" data-g="3">3 × 3</button>
+        <button class="grid-opt" data-g="4">4 × 4</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-label">Combination count</div>
+      <div class="stats-grid">
+        <div class="stat-cell">
+          <div class="stat-cell-label">Colours</div>
+          <div class="stat-cell-val" id="stat-n">4</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-cell-label">Cells</div>
+          <div class="stat-cell-val" id="stat-cells">4</div>
+        </div>
+        <div class="stat-cell" style="grid-column: span 2">
+          <div class="stat-cell-label">Unique combinations</div>
+          <div class="stat-cell-val" id="stat-combos">35</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <button class="btn-generate" id="btn-generate">Generate</button>
+    </div>
+
+  </aside>
+
+  <main class="gallery-wrap">
+    <div class="gallery-header">
+      <div class="gallery-title" id="gallery-title">Studio &permil;</div>
+      <div class="gallery-count" id="gallery-count"></div>
+    </div>
+
+    <div id="gallery-empty" class="empty-state">
+      <div class="empty-state-glyph">◈</div>
+      <p>Pick your colours, set a tile grid, and generate every unique combination.</p>
+    </div>
+
+    <div class="gallery-grid" id="gallery" style="display:none"></div>
+
+    <div class="load-more-wrap" id="load-more-wrap">
+      <button class="btn-load-more" id="btn-load-more">Load more</button>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-header-label">Combination detail</div>
+      <button class="modal-close" id="modal-close" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-left">
+        <div>
+          <div class="modal-left-label">Tile pattern</div>
+          <div class="modal-pattern-wrap" id="modal-pattern"></div>
+        </div>
+        <div>
+          <div class="modal-left-label">Proportions</div>
+          <div class="modal-breakdown" id="modal-breakdown"></div>
+        </div>
+      </div>
+      <div class="modal-right">
+        <div>
+          <div class="modal-left-label">Resultant colour</div>
+          <div class="modal-result-swatch" id="modal-result-swatch"></div>
+        </div>
+        <div>
+          <div class="modal-hex-display" id="modal-hex"></div>
+          <div class="modal-hex-sub">Averaged RGB — optical mix</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-canvas-section">
+      <div class="canvas-header">
+        <div class="canvas-label">Infinite tile — zoom out to blend</div>
+        <div class="zoom-readout" id="zoom-readout">12 px / cell</div>
+      </div>
+      <canvas id="tile-canvas"></canvas>
+      <div class="zoom-row">
+        <span class="zoom-label">Large</span>
+        <input type="range" id="zoom-slider" min="1" max="24" value="12" step="1">
+        <span class="zoom-label">Small</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const PALETTE_DEFAULTS = ['#00b4d8','#f4d35e','#e63946','#06d6a0','#a879c4','#f0834d','#3b8bc4','#e86fa0'];
+  const VISUAL_LIMIT = 200;
+
+  let colors = ['#00b4d8','#f4d35e','#e63946','#06d6a0'];
+  let gridSize = 2;
+  let allCombos = [];
+  let displayedCount = 0;
+  let activeCombo = null;
+  let cellPx = 12;
+
+  /* ── COLOUR UTILS ── */
+  function hexToRgb(hex) {
+    const h = hex.replace('#','');
+    return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+  }
+  function rgbToHex(r,g,b) {
+    return '#'+[r,g,b].map(v=>Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0')).join('');
+  }
+  function avgColor(combo) {
+    const cells = gridSize * gridSize;
+    let sr=0,sg=0,sb=0;
+    combo.forEach((count,i)=>{
+      const [r,g,b] = hexToRgb(colors[i]);
+      sr += r*count; sg += g*count; sb += b*count;
+    });
+    return rgbToHex(sr/cells, sg/cells, sb/cells);
+  }
+
+  /* ── COMBINATORICS ── */
+  function binom(n,k) {
+    if(k<0||k>n) return 0;
+    if(k===0||k===n) return 1;
+    let r=1;
+    for(let i=0;i<k;i++) r=r*(n-i)/(i+1);
+    return Math.round(r);
+  }
+  function countCombos() {
+    const cells = gridSize*gridSize;
+    return binom(cells + colors.length - 1, cells);
+  }
+
+  /* Generate all multiset combinations: how many of each color fills all cells */
+  function generateCombos() {
+    const n = colors.length;
+    const cells = gridSize*gridSize;
+    const result = [];
+    const cur = new Array(n).fill(0);
+    function fill(idx, rem) {
+      if(idx === n-1) { cur[idx]=rem; result.push([...cur]); cur[idx]=0; return; }
+      for(let c=rem; c>=0; c--) { cur[idx]=c; fill(idx+1, rem-c); }
+      cur[idx]=0;
+    }
+    fill(0, cells);
+    return result;
+  }
+
+  /* Build the fixed tile: row-first, color blocks in order */
+  function makeTileOrder(combo) {
+    const order = [];
+    combo.forEach((cnt,ci)=>{ for(let j=0;j<cnt;j++) order.push(ci); });
+    return order; /* length === gridSize*gridSize, deterministic */
+  }
+
+  /* ── STATS ── */
+  function updateStats() {
+    document.getElementById('stat-n').textContent = colors.length;
+    document.getElementById('stat-cells').textContent = gridSize*gridSize;
+    const total = countCombos();
+    document.getElementById('stat-combos').textContent = total.toLocaleString();
+  }
+
+  /* ── COLOR LIST ── */
+  function renderColorList() {
+    const list = document.getElementById('color-list');
+    list.innerHTML = '';
+    colors.forEach((c,i)=>{
+      const row = document.createElement('div');
+      row.className = 'color-row';
+
+      const preview = document.createElement('div');
+      preview.className = 'color-preview';
+      preview.style.background = c;
+
+      const inp = document.createElement('input');
+      inp.type = 'color';
+      inp.value = c;
+      inp.addEventListener('input', e=>{
+        colors[i] = e.target.value;
+        preview.style.background = e.target.value;
+        hexLabel.textContent = e.target.value.toUpperCase();
+        updateStats();
+      });
+      preview.appendChild(inp);
+
+      const hexLabel = document.createElement('div');
+      hexLabel.className = 'color-hex';
+      hexLabel.textContent = c.toUpperCase();
+
+      const rm = document.createElement('button');
+      rm.className = 'color-remove';
+      rm.textContent = '×';
+      rm.title = 'Remove';
+      rm.style.visibility = colors.length > 2 ? 'visible' : 'hidden';
+      rm.addEventListener('click',()=>{
+        colors.splice(i,1);
+        renderColorList();
+        updateStats();
+      });
+
+      row.appendChild(preview);
+      row.appendChild(hexLabel);
+      row.appendChild(rm);
+      list.appendChild(row);
+    });
+  }
+
+  document.getElementById('btn-add-color').addEventListener('click',()=>{
+    if(colors.length >= 8) return;
+    colors.push(PALETTE_DEFAULTS[colors.length % PALETTE_DEFAULTS.length]);
+    renderColorList();
+    updateStats();
+  });
+
+  document.querySelectorAll('.grid-opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.grid-opt').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      gridSize = parseInt(btn.dataset.g);
+      updateStats();
+    });
+  });
+
+  /* ── BUILD CARD DOM ── */
+  function buildCardTile(combo) {
+    const order = makeTileOrder(combo);
+    const wrap = document.createElement('div');
+    wrap.className = 'card-tile-wrap';
+    wrap.style.gridTemplateColumns = `repeat(${gridSize},1fr)`;
+    wrap.style.gridTemplateRows = `repeat(${gridSize},1fr)`;
+    order.forEach(ci=>{
+      const cell = document.createElement('div');
+      cell.className = 'card-tile-cell';
+      cell.style.background = colors[ci];
+      wrap.appendChild(cell);
+    });
+    return wrap;
+  }
+
+  function buildCard(combo) {
+    const hex = avgColor(combo);
+    const card = document.createElement('div');
+    card.className = 'combo-card';
+
+    card.appendChild(buildCardTile(combo));
+
+    const swatch = document.createElement('div');
+    swatch.className = 'card-swatch';
+    swatch.style.background = hex;
+
+    const meta = document.createElement('div');
+    meta.className = 'card-meta';
+    const hexLabel = document.createElement('div');
+    hexLabel.className = 'card-hex';
+    hexLabel.textContent = hex.toUpperCase();
+    meta.appendChild(hexLabel);
+
+    card.appendChild(swatch);
+    card.appendChild(meta);
+    card.addEventListener('click', ()=>openModal(combo, hex));
+    return card;
+  }
+
+  /* ── GENERATE ── */
+  document.getElementById('btn-generate').addEventListener('click', ()=>{
+    allCombos = generateCombos();
+    displayedCount = 0;
+
+    const gallery = document.getElementById('gallery');
+    const empty = document.getElementById('gallery-empty');
+    gallery.innerHTML = '';
+    gallery.style.display = 'grid';
+    empty.style.display = 'none';
+
+    const total = allCombos.length;
+    const batch = Math.min(VISUAL_LIMIT, total);
+    const frag = document.createDocumentFragment();
+    for(let i=0; i<batch; i++) frag.appendChild(buildCard(allCombos[i]));
+    gallery.appendChild(frag);
+    displayedCount = batch;
+
+    updateGalleryMeta(total);
+
+    const exportBtn = document.getElementById('btn-export');
+    exportBtn.style.display = total > 0 ? 'flex' : 'none';
+
+    const lmw = document.getElementById('load-more-wrap');
+    if(displayedCount < total) {
+      lmw.style.display = 'block';
+      const remaining = total - displayedCount;
+      document.getElementById('btn-load-more').textContent =
+        'Load ' + Math.min(VISUAL_LIMIT, remaining).toLocaleString() + ' more';
+    } else {
+      lmw.style.display = 'none';
+    }
+  });
+
+  document.getElementById('btn-load-more').addEventListener('click', ()=>{
+    const total = allCombos.length;
+    const batch = Math.min(VISUAL_LIMIT, total - displayedCount);
+    const gallery = document.getElementById('gallery');
+    const frag = document.createDocumentFragment();
+    for(let i=displayedCount; i<displayedCount+batch; i++) frag.appendChild(buildCard(allCombos[i]));
+    gallery.appendChild(frag);
+    displayedCount += batch;
+    updateGalleryMeta(total);
+
+    const lmw = document.getElementById('load-more-wrap');
+    if(displayedCount < total) {
+      const remaining = total - displayedCount;
+      document.getElementById('btn-load-more').textContent =
+        'Load ' + Math.min(VISUAL_LIMIT, remaining).toLocaleString() + ' more';
+    } else {
+      lmw.style.display = 'none';
+    }
+  });
+
+  function updateGalleryMeta(total) {
+    const title = document.getElementById('gallery-title');
+    const count = document.getElementById('gallery-count');
+    if(total <= VISUAL_LIMIT) {
+      title.textContent = total + ' combinations';
+      count.textContent = '';
+    } else {
+      title.textContent = displayedCount.toLocaleString() + ' shown';
+      count.textContent = 'of ' + total.toLocaleString() + ' total';
+    }
+  }
+
+  /* ── EXPORT ── */
+  document.getElementById('btn-export').addEventListener('click', ()=>{
+    const rows = [['index', ...colors.map((_,i)=>'color_'+(i+1)+'_count'), 'result_hex', ...colors.map((c,i)=>'color_'+(i+1)+'_value')]];
+    allCombos.forEach((combo,idx)=>{
+      rows.push([idx+1, ...combo, avgColor(combo).toUpperCase(), ...colors]);
+    });
+    const csv = rows.map(r=>r.join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+    a.download = 'perMille-combinations.csv';
+    a.click();
+  });
+
+  /* ── MODAL ── */
+  function openModal(combo, hex) {
+    activeCombo = combo;
+
+    /* Pattern */
+    const pat = document.getElementById('modal-pattern');
+    pat.innerHTML = '';
+    pat.style.gridTemplateColumns = `repeat(${gridSize},1fr)`;
+    pat.style.gridTemplateRows = `repeat(${gridSize},1fr)`;
+    const order = makeTileOrder(combo);
+    order.forEach(ci=>{
+      const c = document.createElement('div');
+      c.style.cssText = `background:${colors[ci]};`;
+      pat.appendChild(c);
+    });
+
+    /* Result swatch + hex */
+    document.getElementById('modal-result-swatch').style.background = hex;
+    document.getElementById('modal-hex').textContent = hex.toUpperCase();
+
+    /* Breakdown */
+    const bd = document.getElementById('modal-breakdown');
+    bd.innerHTML = '';
+    const cells = gridSize*gridSize;
+    combo.forEach((cnt,i)=>{
+      if(cnt===0) return;
+      const row = document.createElement('div');
+      row.className = 'breakdown-row';
+      const sw = document.createElement('div');
+      sw.className = 'breakdown-swatch';
+      sw.style.background = colors[i];
+      const txt = document.createElement('div');
+      txt.className = 'breakdown-text';
+      const pct = Math.round(cnt/cells*100);
+      txt.textContent = colors[i].toUpperCase() + ' — ' + cnt + ' cell' + (cnt>1?'s':'') + ' (' + pct + '%)';
+      row.appendChild(sw); row.appendChild(txt);
+      bd.appendChild(row);
+    });
+
+    document.getElementById('modal-overlay').classList.add('open');
+
+    cellPx = parseInt(document.getElementById('zoom-slider').value);
+    document.getElementById('zoom-readout').textContent = cellPx + ' px / cell';
+    requestAnimationFrame(()=>drawTile());
+  }
+
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('modal-overlay').addEventListener('click', e=>{
+    if(e.target === document.getElementById('modal-overlay')) closeModal();
+  });
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    activeCombo = null;
+  }
+
+  /* ── TILE CANVAS ── */
+  function drawTile() {
+    if(!activeCombo) return;
+    const canvas = document.getElementById('tile-canvas');
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.offsetWidth;
+    const H = canvas.offsetHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    /* Build the fixed tile as imagedata for speed */
+    const tilePx = gridSize * cellPx;
+    const order = makeTileOrder(activeCombo);
+
+    /* Draw one tile */
+    const tileCanvas = document.createElement('canvas');
+    tileCanvas.width = tilePx;
+    tileCanvas.height = tilePx;
+    const tc = tileCanvas.getContext('2d');
+    order.forEach((ci, idx)=>{
+      const col = colors[ci];
+      const cx = (idx % gridSize) * cellPx;
+      const cy = Math.floor(idx / gridSize) * cellPx;
+      tc.fillStyle = col;
+      tc.fillRect(cx, cy, cellPx, cellPx);
+    });
+
+    /* Stamp tile across entire canvas — zero gaps, pixel-perfect */
+    const tilesX = Math.ceil(W / tilePx) + 1;
+    const tilesY = Math.ceil(H / tilePx) + 1;
+    for(let ty=0; ty<tilesY; ty++) {
+      for(let tx=0; tx<tilesX; tx++) {
+        ctx.drawImage(tileCanvas, tx*tilePx, ty*tilePx);
+      }
+    }
+  }
+
+  document.getElementById('zoom-slider').addEventListener('input', e=>{
+    cellPx = parseInt(e.target.value);
+    document.getElementById('zoom-readout').textContent = cellPx + ' px / cell';
+    drawTile();
+  });
+
+  /* ── INIT ── */
+  renderColorList();
+  updateStats();
+</script>
+</body>
+</html>
