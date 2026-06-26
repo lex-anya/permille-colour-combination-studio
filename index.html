@@ -415,7 +415,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.25rem 1.5rem;
+    padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--rule);
   }
   .modal-header-label {
@@ -714,7 +714,7 @@
       <canvas id="tile-canvas"></canvas>
       <div class="zoom-row">
         <span class="zoom-label">Large</span>
-        <input type="range" id="zoom-slider" min="1" max="24" value="12" step="1">
+        <input type="range" id="zoom-slider" min="1" max="48" value="24" step="1">
         <span class="zoom-label">Small</span>
       </div>
     </div>
@@ -730,7 +730,7 @@
   let allCombos = [];
   let displayedCount = 0;
   let activeCombo = null;
-  let cellPx = 12;
+  let cellPx = 24;
 
   /* ── COLOUR UTILS ── */
   function hexToRgb(hex) {
@@ -1014,8 +1014,8 @@
 
     document.getElementById('modal-overlay').classList.add('open');
 
-    document.getElementById('zoom-slider').value = 12;
-    cellPx = 12;
+    document.getElementById('zoom-slider').value = 24;
+    cellPx = 24;
     document.getElementById('zoom-readout').textContent = cellPx + ' px / cell';
     requestAnimationFrame(()=>drawTile());
   }
