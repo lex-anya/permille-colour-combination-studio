@@ -1014,7 +1014,8 @@
 
     document.getElementById('modal-overlay').classList.add('open');
 
-    cellPx = parseInt(document.getElementById('zoom-slider').value);
+    document.getElementById('zoom-slider').value = 12;
+    cellPx = 12;
     document.getElementById('zoom-readout').textContent = cellPx + ' px / cell';
     requestAnimationFrame(()=>drawTile());
   }
