@@ -1479,6 +1479,7 @@
 
       function showListView() {
         document.getElementById("gallery-count").textContent = "";
+        document.getElementById('gallery-title').textContent = allCombos.length.toLocaleString() + ' combinations';
         currentView = "list";
         document.getElementById("btn-list-view").classList.add("active");
         document.getElementById("btn-cards-view").classList.remove("active");
